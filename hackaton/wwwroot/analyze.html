@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Аналитика клиентов</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; }
+    .container { display: flex; }
+    .table-area { flex: 2; }
+    .details-area { flex: 1; margin-left: 40px; background: #fff; padding: 20px; border-radius: 8px; min-width: 300px; }
+    h2 { margin-bottom: 20px; }
+    table { border-collapse: collapse; width: 100%; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+    th { background: #e9ecef; cursor: pointer; }
+    tr.selected { background: #d1e7fd !important; }
+    tr:nth-child(even) { background: #f2f2f2; }
+    .loading { font-size: 1.2em; color: #888; }
+    .error { color: red; }
+    .randoms {
+      position: fixed;
+      top: 20px;
+      right: 40px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 1.1em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      z-index: 10;
+      min-width: 180px;
+      text-align: right;
+    }
+    .randoms span { display: block; }
+    @media (max-width: 900px) {
+      .container { flex-direction: column; }
+      .details-area { margin-left: 0; margin-top: 30px; }
+      .randoms { position: static; margin-bottom: 20px; text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <h2>Аналитика клиентов</h2>
+  <div id="randoms" class="randoms" style="display:none;">
+    <span id="random1"></span>
+    <span id="random2"></span>
+  </div>
+  <div style="margin-bottom:18px;">
+    <label>Менеджер:
+      <select id="filterManagerFio" style="width:200px;"><option value="">Все</option></select>
+    </label>
+    <label style="margin-left:18px;">Номенклатура:
+      <select id="filterNomenclatureName" style="width:300px;"><option value="">Все</option></select>
+    </label>
+    <label style="margin-left:18px;">Последний регион:
+      <select id="filterLastRegion" style="width:120px;"><option value="">Все</option></select>
+    </label>
+  </div>
+  <div class="container">
+    <div class="table-area">
+      <div id="status" class="loading">Загрузка...</div>
+      <table id="resultTable" style="display:none;">
+        <thead>
+          <tr>
+            <th data-sort="partnerName">Партнер</th>
+            <th data-sort="managerFio">Менеджер</th>
+            <th data-sort="nomenclatureName">Номенклатура</th>
+            <th data-sort="lastRegion">Последний регион</th>
+            <th>Рейтинг</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+    </div>
+    <div class="details-area" id="details" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 id="detailsPartner" style="margin:0;"></h3>
+        <button id="hideDetailsBtn" style="font-size:1.2em;padding:2px 10px;">×</button>
+      </div>
+      <ol id="detailsReasons"></ol>
+    </div>
+  </div>
+  <script>
+    let data = [];
+    let selectedIdx = null;
+    let sortField = null;
+    let sortAsc = true;
+
+    function renderTable() {
+      const tbody = document.getElementById('resultBody');
+      tbody.innerHTML = '';
+      let filtered = data;
+      const fManager = document.getElementById('filterManagerFio').value;
+      const fNomen = document.getElementById('filterNomenclatureName').value;
+      const fRegion = document.getElementById('filterLastRegion').value;
+      if (fManager) filtered = filtered.filter(r => (r.managerFio ?? '') === fManager);
+      if (fNomen) filtered = filtered.filter(r => (r.nomenclatureName ?? '') === fNomen);
+      if (fRegion) filtered = filtered.filter(r => (r.lastRegion ?? '') === fRegion);
+      filtered.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        // selectedIdx теперь по исходному data, поэтому ищем индекс в filtered
+        if (data[selectedIdx] === row) tr.classList.add('selected');
+        tr.onclick = () => selectRow(data.indexOf(row));
+        tr.innerHTML = `
+          <td>${row.partnerName ?? ''}</td>
+          <td>${row.managerFio ?? ''}</td>
+          <td>${row.nomenclatureName ?? ''}</td>
+          <td>${row.lastRegion ?? ''}</td>
+          <td>${renderRating(row.rating)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectRow(idx) {
+      selectedIdx = idx;
+      renderTable();
+      const row = data[idx];
+      document.getElementById('detailsPartner').textContent = row.partnerName ?? '';
+      // reasons: только не "0" и не "Запрос передан в другие управления"
+      const reasons = (row.reasons || []).filter(r => r !== "0" && r !== "Запрос передан в другие управления");
+      const ol = document.getElementById('detailsReasons');
+      ol.innerHTML = '';
+      reasons.forEach(r => {
+        const li = document.createElement('li');
+        li.textContent = r;
+        ol.appendChild(li);
+      });
+      document.getElementById('details').style.display = '';
+      // random1 и random2
+      document.getElementById('random1').textContent = 'За месяц: ' + (row.random1 ?? '') + '%';
+      document.getElementById('random2').textContent = 'За год: ' + (row.random2 ?? '') + '%';
+      document.getElementById('randoms').style.display = '';
+    }
+
+    function sortBy(field) {
+      if (sortField === field) {
+        sortAsc = !sortAsc;
+      } else {
+        sortField = field;
+        sortAsc = true;
+      }
+      data.sort((a, b) => {
+        const va = (a[field] || '').toLowerCase ? (a[field] || '').toLowerCase() : (a[field] || '');
+        const vb = (b[field] || '').toLowerCase ? (b[field] || '').toLowerCase() : (b[field] || '');
+        if (va < vb) return sortAsc ? -1 : 1;
+        if (va > vb) return sortAsc ? 1 : -1;
+        return 0;
+      });
+      renderTable();
+    }
+
+    function renderRating(rating) {
+      if (rating == 90) return '<span style="color:#fff;background:#d32f2f;padding:2px 8px;border-radius:6px;font-weight:bold;">Критично</span>';
+      if (rating == 60) return '<span style="color:#fff;background:#ff9800;padding:2px 8px;border-radius:6px;font-weight:bold;">Высоко</span>';
+      if (rating == 30) return '<span style="color:#000;background:#fff176;padding:2px 8px;border-radius:6px;font-weight:bold;">Умеренно</span>';
+      if (rating == 0)  return '<span style="color:#fff;background:#43a047;padding:2px 8px;border-radius:6px;font-weight:bold;">Низко</span>';
+      return rating ?? '';
+    }
+
+    function fillFilter(id, values) {
+      const select = document.getElementById(id);
+      const unique = Array.from(new Set(values.filter(v => v && v !== ''))).sort();
+      select.innerHTML = '<option value="">Все</option>' + unique.map(v => `<option value="${v}">${v}</option>`).join('');
+    }
+
+    // Сортировка по managerFio, nomenclatureName, lastRegion по клику
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('#resultTable th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => sortBy(th.getAttribute('data-sort')));
+      });
+      document.getElementById('hideDetailsBtn').onclick = function() {
+        document.getElementById('details').style.display = 'none';
+        document.getElementById('randoms').style.display = 'none';
+      };
+      document.getElementById('filterManagerFio').onchange = renderTable;
+      document.getElementById('filterNomenclatureName').onchange = renderTable;
+      document.getElementById('filterLastRegion').onchange = renderTable;
+    });
+
+    fetch('/api/General/analyze-advanced')
+      .then(response => {
+        if (!response.ok) throw new Error('Ошибка загрузки данных');
+        return response.json();
+      })
+      .then(json => {
+        data = json.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)); // сортировка по рейтингу по убыванию
+        // Заполняем фильтры
+        fillFilter('filterManagerFio', data.map(r => r.managerFio));
+        fillFilter('filterNomenclatureName', data.map(r => r.nomenclatureName));
+        fillFilter('filterLastRegion', data.map(r => r.lastRegion));
+        document.getElementById('status').style.display = 'none';
+        document.getElementById('resultTable').style.display = '';
+        renderTable();
+      })
+      .catch(err => {
+        document.getElementById('status').className = 'error';
+        document.getElementById('status').textContent = err.message;
+      });
+  </script>
+</body>
+</html> 
