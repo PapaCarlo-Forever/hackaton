@@ -102,6 +102,7 @@ public class GeneralController : ControllerBase
                 .Where(r => r != null)
                 .ToArray();
 
+
             result.Add(new GeneralDto
             {
                 partnerName = blockItems[0].SPartner?.name,
