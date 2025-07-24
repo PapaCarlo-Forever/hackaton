@@ -1,3 +1,4 @@
+//Выполнил Арнаутов 22.07.2025
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

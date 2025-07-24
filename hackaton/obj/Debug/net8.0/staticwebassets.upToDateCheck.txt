@@ -1,0 +1,5 @@
+wwwroot\analyze.html
+wwwroot\public\tmk++logo-black.webp
+wwwroot\public\tmk++logo-white.svg
+wwwroot\public\tmk-logo.jpg
+wwwroot\public\tmk-logo.png

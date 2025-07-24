@@ -1,3 +1,4 @@
+//Выполнил Арнаутов 22.07.2025
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -119,7 +120,7 @@ public class GeneralController : ControllerBase
 
         var sortedResult = result.OrderByDescending(x => x.rating).ToList();
 
-        // Email рассылка если сегодня 1-е число месяца и есть клиенты с рейтингом 60 или 90
+        // Email рассылка если сегодня 1-е число месяца
         var now = DateTime.Now;
         if (now.Day == 1)
         {

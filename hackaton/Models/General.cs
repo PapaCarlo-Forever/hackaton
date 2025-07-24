@@ -1,3 +1,4 @@
+//Выполнил Арнаутов 22.07.2025
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

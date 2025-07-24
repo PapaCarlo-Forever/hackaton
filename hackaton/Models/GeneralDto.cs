@@ -1,3 +1,4 @@
+//Выполнил Арнаутов 22.07.2025
 public class GeneralDto
 {
     public decimal totalWeight { get; set; }

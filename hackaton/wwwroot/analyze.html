@@ -1,201 +1,424 @@
+<!-- Выполнил Геймбюхнер 22.07.2025 -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Аналитика клиентов</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; }
-    .container { display: flex; }
-    .table-area { flex: 2; }
-    .details-area { flex: 1; margin-left: 40px; background: #fff; padding: 20px; border-radius: 8px; min-width: 300px; }
-    h2 { margin-bottom: 20px; }
-    table { border-collapse: collapse; width: 100%; background: #fff; }
-    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
-    th { background: #e9ecef; cursor: pointer; }
-    tr.selected { background: #d1e7fd !important; }
-    tr:nth-child(even) { background: #f2f2f2; }
-    .loading { font-size: 1.2em; color: #888; }
-    .error { color: red; }
-    .randoms {
-      position: fixed;
-      top: 20px;
-      right: 40px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-size: 1.1em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      z-index: 10;
-      min-width: 180px;
-      text-align: right;
-    }
-    .randoms span { display: block; }
-    @media (max-width: 900px) {
-      .container { flex-direction: column; }
-      .details-area { margin-left: 0; margin-top: 30px; }
-      .randoms { position: static; margin-bottom: 20px; text-align: left; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>TMK-Аналитика</title>
+    <link rel="icon" type="image/svg+xml" href="public/tmk-logo.png" />
+    <style>
+        :root {
+            --main-color-orange: #f57838;
+            --main-color-black: #292929;
+            --main-color-gray: #c8c8c8;
+            --light-gray: #DDD;
+        }
+
+        main {
+            margin: 10px;
+            margin-top: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url("../public/background-tmk.png");
+            background-attachment: fixed;
+            background-size: cover;
+            margin: 0;
+            color: var(--main-color-black);
+        }
+
+        header {
+            background-color: var(--main-color-gray);
+            display: flex;
+            justify-content: space-between;
+            margin: 0;
+            border: 1px solid var(--main-color-black);
+        }
+
+        .header-slogan {
+            margin: 20px;
+            color: var(--main-color-black);
+        }
+
+        h1 {
+            color: var(--main-color-orange);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 50px;
+            text-transform: uppercase;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .table-area {
+            flex: 2;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border: 1px solid var(--main-color-orange);
+        }
+
+        .details-area {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border: 1px solid var(--main-color-orange);
+        }
+
+        /* Фильтры */
+        label {
+            display: inline-block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 14px;
+            margin-right: 20px;
+            min-width: 200px;
+        }
+
+            select:focus {
+                outline: none;
+                border-color: var(--main-color-orange);
+                box-shadow: 0 0 0 2px rgba(245, 120, 56, 0.2);
+            }
+
+        /* Таблица */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            background-color: var(--main-color-orange);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            cursor: pointer;
+            position: relative;
+        }
+
+            th:hover {
+                background-color: #e06a2c;
+            }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        tr.selectable-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            tr.selectable-row:hover {
+                background-color: #f5f5f5;
+            }
+
+        tr.selected {
+            background-color: #e6f2ff !important;
+        }
+
+        /* Детали */
+        #details h3 {
+            color: var(--main-color-orange);
+            margin-bottom: 15px;
+        }
+
+        #detailsReasons {
+            padding-left: 20px;
+        }
+
+            #detailsReasons li {
+                margin-bottom: 8px;
+                line-height: 1.4;
+            }
+
+        #hideDetailsBtn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--main-color-orange);
+            font-weight: bold;
+        }
+
+            #hideDetailsBtn:hover {
+                color: #e06a2c;
+            }
+
+
+        /* Рейтинги */
+        .rating-critical {
+            color: #fff;
+            background: #d32f2f;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .rating-high {
+            color: #fff;
+            background: #ff9800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .rating-moderate {
+            color: #000;
+            background: #fff176;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .rating-low {
+            color: #fff;
+            background: #43a047;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        /* Статус загрузки */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--main-color-orange);
+        }
+
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #d32f2f;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .table-area, .details-area {
+                width: 100%;
+            }
+
+            select {
+                display: block;
+                width: 100%;
+                margin-bottom: 15px;
+                margin-right: 0;
+            }
+        }
+
+        .randoms {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid var(--light-gray);
+        }
+
+            .randoms span {
+                display: inline-block;
+                margin-right: 20px;
+                font-weight: bold;
+                color: var(--main-color-orange);
+            }
+    </style>
 </head>
 <body>
-  <h2>Аналитика клиентов</h2>
-  <div id="randoms" class="randoms" style="display:none;">
-    <span id="random1"></span>
-    <span id="random2"></span>
-  </div>
-  <div style="margin-bottom:18px;">
-    <label>Менеджер:
-      <select id="filterManagerFio" style="width:200px;"><option value="">Все</option></select>
-    </label>
-    <label style="margin-left:18px;">Номенклатура:
-      <select id="filterNomenclatureName" style="width:300px;"><option value="">Все</option></select>
-    </label>
-    <label style="margin-left:18px;">Последний регион:
-      <select id="filterLastRegion" style="width:120px;"><option value="">Все</option></select>
-    </label>
-  </div>
-  <div class="container">
-    <div class="table-area">
-      <div id="status" class="loading">Загрузка...</div>
-      <table id="resultTable" style="display:none;">
-        <thead>
-          <tr>
-            <th data-sort="partnerName">Партнер</th>
-            <th data-sort="managerFio">Менеджер</th>
-            <th data-sort="nomenclatureName">Номенклатура</th>
-            <th data-sort="lastRegion">Последний регион</th>
-            <th>Рейтинг</th>
-          </tr>
-        </thead>
-        <tbody id="resultBody"></tbody>
-      </table>
-    </div>
-    <div class="details-area" id="details" style="display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h3 id="detailsPartner" style="margin:0;"></h3>
-        <button id="hideDetailsBtn" style="font-size:1.2em;padding:2px 10px;">×</button>
-      </div>
-      <ol id="detailsReasons"></ol>
-    </div>
-  </div>
-  <script>
-    let data = [];
-    let selectedIdx = null;
-    let sortField = null;
-    let sortAsc = true;
+    <header>
+        <img src="public/tmk++logo-black.webp" width="200" height="100" alt="TMK logo" />
+        <p class="header-slogan">Корпоративные IT-решения</p>
+    </header>
+    <main>
+        <h1>Aналитика клиентов</h1>
+        <div id="randoms" class="randoms" style="display:none;">
+            <span id="random1"></span>
+            <span id="random2"></span>
+        </div>
+        <div style="margin-bottom:18px;">
+            <label>
+                Менеджер:
+                <select id="filterManagerFio" style="width:200px;">
+                    <option value="">Все</option>
+                </select>
+            </label>
+            <label style="margin-left:18px;">
+                Номенклатура:
+                <select id="filterNomenclatureName" style="width:300px;">
+                    <option value="">Все</option>
+                </select>
+            </label>
+            <label style="margin-left:18px;">
+                Последний регион:
+                <select id="filterLastRegion" style="width:120px;">
+                    <option value="">Все</option>
+                </select>
+            </label>
+        </div>
+        <div class="container">
+            <div class="table-area">
+                <div id="status" class="loading">Загрузка...</div>
+                <table id="resultTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th data-sort="partnerName">Партнер</th>
+                            <th data-sort="managerFio">Менеджер</th>
+                            <th data-sort="nomenclatureName">Номенклатура</th>
+                            <th data-sort="lastRegion">Последний регион</th>
+                            <th>Рейтинг</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultBody"></tbody>
+                </table>
+            </div>
+            <div class="details-area" id="details" style="display:none;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h3 id="detailsPartner" style="margin:0;"></h3>
+                    <button id="hideDetailsBtn" style="font-size:1.2em;padding:2px 10px;">×</button>
+                </div>
+                <ol id="detailsReasons"></ol>
+            </div>
+        </div>
+    </main>
 
-    function renderTable() {
-      const tbody = document.getElementById('resultBody');
-      tbody.innerHTML = '';
-      let filtered = data;
-      const fManager = document.getElementById('filterManagerFio').value;
-      const fNomen = document.getElementById('filterNomenclatureName').value;
-      const fRegion = document.getElementById('filterLastRegion').value;
-      if (fManager) filtered = filtered.filter(r => (r.managerFio ?? '') === fManager);
-      if (fNomen) filtered = filtered.filter(r => (r.nomenclatureName ?? '') === fNomen);
-      if (fRegion) filtered = filtered.filter(r => (r.lastRegion ?? '') === fRegion);
-      filtered.forEach((row, idx) => {
-        const tr = document.createElement('tr');
-        // selectedIdx теперь по исходному data, поэтому ищем индекс в filtered
-        if (data[selectedIdx] === row) tr.classList.add('selected');
-        tr.onclick = () => selectRow(data.indexOf(row));
-        tr.innerHTML = `
-          <td>${row.partnerName ?? ''}</td>
-          <td>${row.managerFio ?? ''}</td>
-          <td>${row.nomenclatureName ?? ''}</td>
-          <td>${row.lastRegion ?? ''}</td>
-          <td>${renderRating(row.rating)}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+    <script>
+        let data = [];
+        let selectedIdx = null;
+        let sortField = null;
+        let sortAsc = true;
 
-    function selectRow(idx) {
-      selectedIdx = idx;
-      renderTable();
-      const row = data[idx];
-      document.getElementById('detailsPartner').textContent = row.partnerName ?? '';
-      // reasons: только не "0" и не "Запрос передан в другие управления"
-      const reasons = (row.reasons || []).filter(r => r !== "0" && r !== "Запрос передан в другие управления");
-      const ol = document.getElementById('detailsReasons');
-      ol.innerHTML = '';
-      reasons.forEach(r => {
-        const li = document.createElement('li');
-        li.textContent = r;
-        ol.appendChild(li);
-      });
-      document.getElementById('details').style.display = '';
-      // random1 и random2
-      document.getElementById('random1').textContent = 'За месяц: ' + (row.random1 ?? '') + '%';
-      document.getElementById('random2').textContent = 'За год: ' + (row.random2 ?? '') + '%';
-      document.getElementById('randoms').style.display = '';
-    }
 
-    function sortBy(field) {
-      if (sortField === field) {
-        sortAsc = !sortAsc;
-      } else {
-        sortField = field;
-        sortAsc = true;
-      }
-      data.sort((a, b) => {
-        const va = (a[field] || '').toLowerCase ? (a[field] || '').toLowerCase() : (a[field] || '');
-        const vb = (b[field] || '').toLowerCase ? (b[field] || '').toLowerCase() : (b[field] || '');
-        if (va < vb) return sortAsc ? -1 : 1;
-        if (va > vb) return sortAsc ? 1 : -1;
-        return 0;
-      });
-      renderTable();
-    }
+        function renderTable() {
+            const tbody = document.getElementById('resultBody');
+            tbody.innerHTML = '';
+            let filtered = data;
+            const fManager = document.getElementById('filterManagerFio').value;
+            const fNomen = document.getElementById('filterNomenclatureName').value;
+            const fRegion = document.getElementById('filterLastRegion').value;
+            if (fManager) filtered = filtered.filter(r => (r.managerFio ?? '') === fManager);
+            if (fNomen) filtered = filtered.filter(r => (r.nomenclatureName ?? '') === fNomen);
+            if (fRegion) filtered = filtered.filter(r => (r.lastRegion ?? '') === fRegion);
+            filtered.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                // selectedIdx теперь по исходному data, поэтому ищем индекс в filtered
+                if (data[selectedIdx] === row) tr.classList.add('selected');
+                tr.onclick = () => selectRow(data.indexOf(row));
+                tr.innerHTML = `
+                  <td>${row.partnerName ?? ''}</td>
+                  <td>${row.managerFio ?? ''}</td>
+                  <td>${row.nomenclatureName ?? ''}</td>
+                  <td>${row.lastRegion ?? ''}</td>
+                  <td>${renderRating(row.rating)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
-    function renderRating(rating) {
-      if (rating == 90) return '<span style="color:#fff;background:#d32f2f;padding:2px 8px;border-radius:6px;font-weight:bold;">Критично</span>';
-      if (rating == 60) return '<span style="color:#fff;background:#ff9800;padding:2px 8px;border-radius:6px;font-weight:bold;">Высоко</span>';
-      if (rating == 30) return '<span style="color:#000;background:#fff176;padding:2px 8px;border-radius:6px;font-weight:bold;">Умеренно</span>';
-      if (rating == 0)  return '<span style="color:#fff;background:#43a047;padding:2px 8px;border-radius:6px;font-weight:bold;">Низко</span>';
-      return rating ?? '';
-    }
+        function selectRow(idx) {
+            selectedIdx = idx;
+            renderTable();
+            const row = data[idx];
+            document.getElementById('detailsPartner').textContent = row.partnerName ?? '';
+            // reasons: только не "0" и не "Запрос передан в другие управления"
+            const reasons = (row.reasons || []).filter(r => r !== "0" && r !== "Запрос передан в другие управления");
+            const ol = document.getElementById('detailsReasons');
+            ol.innerHTML = '';
+            reasons.forEach(r => {
+                const li = document.createElement('li');
+                li.textContent = r;
+                ol.appendChild(li);
+            });
+            document.getElementById('details').style.display = '';
+            // random1 и random2
+            document.getElementById('random1').textContent = 'За месяц: ' + (row.random1 ?? '') + '%';
+            document.getElementById('random2').textContent = 'За год: ' + (row.random2 ?? '') + '%';
+            document.getElementById('randoms').style.display = '';
+        }
 
-    function fillFilter(id, values) {
-      const select = document.getElementById(id);
-      const unique = Array.from(new Set(values.filter(v => v && v !== ''))).sort();
-      select.innerHTML = '<option value="">Все</option>' + unique.map(v => `<option value="${v}">${v}</option>`).join('');
-    }
+        function sortBy(field) {
+            if (sortField === field) {
+                sortAsc = !sortAsc;
+            } else {
+                sortField = field;
+                sortAsc = true;
+            }
+            data.sort((a, b) => {
+                const va = (a[field] || '').toLowerCase ? (a[field] || '').toLowerCase() : (a[field] || '');
+                const vb = (b[field] || '').toLowerCase ? (b[field] || '').toLowerCase() : (b[field] || '');
+                if (va < vb) return sortAsc ? -1 : 1;
+                if (va > vb) return sortAsc ? 1 : -1;
+                return 0;
+            });
+            renderTable();
+        }
 
-    // Сортировка по managerFio, nomenclatureName, lastRegion по клику
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('#resultTable th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => sortBy(th.getAttribute('data-sort')));
-      });
-      document.getElementById('hideDetailsBtn').onclick = function() {
-        document.getElementById('details').style.display = 'none';
-        document.getElementById('randoms').style.display = 'none';
-      };
-      document.getElementById('filterManagerFio').onchange = renderTable;
-      document.getElementById('filterNomenclatureName').onchange = renderTable;
-      document.getElementById('filterLastRegion').onchange = renderTable;
-    });
+        function renderRating(rating) {
+            if (rating == 90) return '<span style="color:#fff;background:#d32f2f;padding:2px 8px;border-radius:6px;font-weight:bold;">Критично</span>';
+            if (rating == 60) return '<span style="color:#fff;background:#ff9800;padding:2px 8px;border-radius:6px;font-weight:bold;">Высоко</span>';
+            if (rating == 30) return '<span style="color:#000;background:#fff176;padding:2px 8px;border-radius:6px;font-weight:bold;">Умеренно</span>';
+            if (rating == 0) return '<span style="color:#fff;background:#43a047;padding:2px 8px;border-radius:6px;font-weight:bold;">Низко</span>';
+            return rating ?? '';
+        }
 
-    fetch('/api/General/analyze-advanced')
-      .then(response => {
-        if (!response.ok) throw new Error('Ошибка загрузки данных');
-        return response.json();
-      })
-      .then(json => {
-        data = json.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)); // сортировка по рейтингу по убыванию
-        // Заполняем фильтры
-        fillFilter('filterManagerFio', data.map(r => r.managerFio));
-        fillFilter('filterNomenclatureName', data.map(r => r.nomenclatureName));
-        fillFilter('filterLastRegion', data.map(r => r.lastRegion));
-        document.getElementById('status').style.display = 'none';
-        document.getElementById('resultTable').style.display = '';
-        renderTable();
-      })
-      .catch(err => {
-        document.getElementById('status').className = 'error';
-        document.getElementById('status').textContent = err.message;
-      });
-  </script>
+        function fillFilter(id, values) {
+            const select = document.getElementById(id);
+            const unique = Array.from(new Set(values.filter(v => v && v !== ''))).sort();
+            select.innerHTML = '<option value="">Все</option>' + unique.map(v => `<option value="${v}">${v}</option>`).join('');
+        }
+
+
+        // Сортировка по managerFio, nomenclatureName, lastRegion по клику
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('#resultTable th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => sortBy(th.getAttribute('data-sort')));
+            });
+            document.getElementById('hideDetailsBtn').onclick = function () {
+                document.getElementById('details').style.display = 'none';
+                document.getElementById('randoms').style.display = 'none';
+            };
+            document.getElementById('filterManagerFio').onchange = renderTable;
+            document.getElementById('filterNomenclatureName').onchange = renderTable;
+            document.getElementById('filterLastRegion').onchange = renderTable;
+        });
+
+        fetch('/api/General/analyze-advanced')
+            .then(response => {
+                if (!response.ok) throw new Error('Ошибка загрузки данных');
+                return response.json();
+            })
+            .then(json => {
+                data = json.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)); // сортировка по рейтингу по убыванию
+                // Заполняем фильтры
+                fillFilter('filterManagerFio', data.map(r => r.managerFio));
+                fillFilter('filterNomenclatureName', data.map(r => r.nomenclatureName));
+                fillFilter('filterLastRegion', data.map(r => r.lastRegion));
+                document.getElementById('status').style.display = 'none';
+                document.getElementById('resultTable').style.display = '';
+                renderTable();
+            })
+            .catch(err => {
+                document.getElementById('status').className = 'error';
+                document.getElementById('status').textContent = err.message;
+            });
+    </script>
 </body>
-</html> 
+</html>
